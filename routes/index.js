@@ -51,6 +51,6 @@ router.get(
 );
 
 // for Get the Votes
-router.get("/results/:year",previousResultCtrl.getPreviousResults)
+router.get("/previousresults/president/:year",previousResultCtrl.getPreviousResults)
 
 module.exports = router;
