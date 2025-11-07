@@ -10,6 +10,7 @@ const manageSisMemberCtrl = require("../controller/addMemberSisElec");
 const manageShowVoteCtrl = require("../controller/getElcVotesInDashbord");
 const managerejectedVoteCtrl = require("../controller/rejectVoteCount");
 const previousResultCtrl = require("../controller/previousResultCtrl");
+const createElectionCtrl = require("../controller/createElectionCtrl");
 
 // ~~~~~~~~~~~~~ Router For Api ~~~~~~~~~
 
@@ -44,13 +45,35 @@ router.get(
 router.post("/submit-vote", manageShowVoteCtrl.getshowvot);
 router.get("/get-votes", manageShowVoteCtrl.getVoteCounts);
 
-// for the Rejected Votes 
+// for the Rejected Votes
 router.get(
   "/rejected-vote-counts",
   managerejectedVoteCtrl.getRejectedVoteCount
 );
 
 // for Get the Votes
-router.get("/previousresults/president/:year",previousResultCtrl.getPreviousResults)
+router.get(
+  "/previousresults/president/:year",
+  previousResultCtrl.getPreviousResults
+);
+
+// create election.
+
+// Health check
+router.get("/", (req, res) => res.json({ success: true, message: "API ok" }));
+
+// Create election
+router.post("/create-election", createElectionCtrl.createElection);
+
+// Resume scheduler on import (so server/index.js does not need to be changed)
+// NOTE: calling the resume function here will run when 'require("./routes")' is executed in server/index.js
+if (typeof createElectionCtrl.resumeSchedulerOnStartup === "function") {
+  // call but don't await blocking the require; log errors if any
+  createElectionCtrl
+    .resumeSchedulerOnStartup()
+    .catch((err) =>
+      console.error("Error resuming scheduler from routes import:", err)
+    );
+}
 
 module.exports = router;

@@ -241,40 +241,512 @@
 
 
 // server/routes/index.js
-const express = require("express");
-const router = express.Router();
+// const express = require("express");
+// const router = express.Router();
 
-const manageMemberCtrl = require("../controller/addMember");
-const manageCandidateCtrl = require("../controller/addCandidates");
-const manageSignUpCtrl = require("../controller/userSignUp");
-const manageSignInCtrl = require("../controller/userSignin");
-const manageCandidateSisElecCtrl = require("../controller/addCandidateSisElec");
-const manageSisMemberCtrl = require("../controller/addMemberSisElec");
-const manageShowVoteCtrl = require("../controller/getElcVotesInDashbord");
-const managerejectedVoteCtrl = require("../controller/rejectVoteCount");
+// const manageMemberCtrl = require("../controller/addMember");
+// const manageCandidateCtrl = require("../controller/addCandidates");
+// const manageSignUpCtrl = require("../controller/userSignUp");
+// const manageSignInCtrl = require("../controller/userSignin");
+// const manageCandidateSisElecCtrl = require("../controller/addCandidateSisElec");
+// const manageSisMemberCtrl = require("../controller/addMemberSisElec");
+// const manageShowVoteCtrl = require("../controller/getElcVotesInDashbord");
+// const managerejectedVoteCtrl = require("../controller/rejectVoteCount");
 
-// ~~~~~~~~~~~~~ Router For Api ~~~~~~~~~
-router.post("/signup", manageSignUpCtrl.userSignUpData);
-router.post("/signin", manageSignInCtrl.userSignInData);
+// // ~~~~~~~~~~~~~ Router For Api ~~~~~~~~~
+// router.post("/signup", manageSignUpCtrl.userSignUpData);
+// router.post("/signin", manageSignInCtrl.userSignInData);
 
-// Members / Candidates
-router.post("/addmember", manageMemberCtrl.addMemberData);
-router.get("/get-addmember", manageMemberCtrl.getMember);
+// // Members / Candidates
+// router.post("/addmember", manageMemberCtrl.addMemberData);
+// router.get("/get-addmember", manageMemberCtrl.getMember);
 
-router.post("/addvoter", manageSisMemberCtrl.addSismemberData);
-router.get("/get-addvoter", manageSisMemberCtrl.getSisMemberElec);
+// router.post("/addvoter", manageSisMemberCtrl.addSismemberData);
+// router.get("/get-addvoter", manageSisMemberCtrl.getSisMemberElec);
 
-router.post("/addcandidate", manageCandidateCtrl.addCandidateData);
-router.get("/get-addcandidate", manageCandidateCtrl.getcandidate);
+// router.post("/addcandidate", manageCandidateCtrl.addCandidateData);
+// router.get("/get-addcandidate", manageCandidateCtrl.getcandidate);
 
-router.post("/addcandidate-sis-elec", manageCandidateSisElecCtrl.addCandidateSisElecData);
-router.get("/get-addcandidate-sis-elec", manageCandidateSisElecCtrl.getCandidateSisElec);
+// router.post("/addcandidate-sis-elec", manageCandidateSisElecCtrl.addCandidateSisElecData);
+// router.get("/get-addcandidate-sis-elec", manageCandidateSisElecCtrl.getCandidateSisElec);
 
-// Vote endpoints
-router.post("/submit-vote", manageShowVoteCtrl.getshowvot); // collect into array
-router.get("/get-votes", manageShowVoteCtrl.getVoteCounts); // process queue & return counts
+// // Vote endpoints
+// router.post("/submit-vote", manageShowVoteCtrl.getshowvot); // collect into array
+// router.get("/get-votes", manageShowVoteCtrl.getVoteCounts); // process queue & return counts
 
-// Rejected votes
-router.get("/rejected-vote-counts", managerejectedVoteCtrl.getRejectedVoteCount);
+// // Rejected votes
+// router.get("/rejected-vote-counts", managerejectedVoteCtrl.getRejectedVoteCount);
 
-module.exports = router;
+// module.exports = router;
+// 
+
+// __________code for Create election controlers___________
+// const Election = require("../../models/createElectionModel");
+
+// // Helper to convert delay string to ms
+// const delayStringToMs = (s) => {
+//   if (!s) return 0;
+//   const map = {
+//     "10min": 10 * 60 * 1000,
+//     "30min": 30 * 60 * 1000,
+//     "1h": 60 * 60 * 1000,
+//     "2h": 2 * 60 * 60 * 1000,
+//     "6h": 6 * 60 * 60 * 1000,
+//     "12h": 12 * 60 * 60 * 1000,
+//     "24h": 24 * 60 * 60 * 1000,
+//   };
+//   return map[s] || parseInt(s, 10) || 0;
+// };
+
+// // Combine date (YYYY-MM-DD) + time (HH:mm:ss) -> Date object (local)
+// const combineDateTime = (dateStr, timeStr) => {
+//   // If timeStr missing, default to 00:00:00
+//   const time = timeStr && timeStr.trim() ? timeStr.trim() : "00:00:00";
+//   // Build ISO-ish string. This will create a Date in local timezone.
+//   const iso = `${dateStr}T${time}`;
+//   return new Date(iso);
+// };
+
+// const createElectionCtrl = {
+//   // POST /api/create-election
+//   createElectionData: async (req, res) => {
+//     try {
+//       const {
+//         electionType,
+//         nominationStartDate,
+//         nominationStartTime,
+//         nominationEndDate,
+//         nominationEndTime,
+//         delayBeforeStart, // e.g. "10min"
+//         electionStartDate,
+//         electionStartTime,
+//         electionEndDate,
+//         electionEndTime,
+//         createdBy,
+//       } = req.body;
+
+//       // Minimal validation
+//       if (
+//         !electionType ||
+//         !nominationStartDate ||
+//         !nominationEndDate ||
+//         !electionStartDate ||
+//         !electionEndDate
+//       ) {
+//         return res.status(400).json({ message: "Missing required fields" });
+//       }
+
+//       const nominationStartAt = combineDateTime(
+//         nominationStartDate,
+//         nominationStartTime
+//       );
+//       const nominationEndAt = combineDateTime(
+//         nominationEndDate,
+//         nominationEndTime
+//       );
+//       const electionStartAt = combineDateTime(
+//         electionStartDate,
+//         electionStartTime
+//       );
+//       const electionEndAt = combineDateTime(electionEndDate, electionEndTime);
+
+//       const startDelayMs = delayStringToMs(delayBeforeStart);
+
+//       // Compute the actual start time:
+//       // Some rules: the start should be the later of (nominationEndAt + delay) and electionStartAt
+//       const nominationPlusDelay = new Date(
+//         nominationEndAt.getTime() + startDelayMs
+//       );
+//       const computedStartAt =
+//         nominationPlusDelay > electionStartAt
+//           ? nominationPlusDelay
+//           : electionStartAt;
+
+//       const newElection = new Election({
+//         electionType,
+//         nominationStartAt,
+//         nominationEndAt,
+//         startDelayMs,
+//         electionStartAt,
+//         electionEndAt,
+//         computedStartAt,
+//         status: "scheduled",
+//         createdBy: createdBy || "admin",
+//       });
+
+//       await newElection.save();
+
+//       console.log(
+//         `✅ New election created (${electionType}) id=${
+//           newElection._id
+//         } scheduledStart=${computedStartAt.toISOString()}`
+//       );
+
+//       return res.status(201).json({
+//         message: "Election created and scheduled",
+//         electionId: newElection._id,
+//         scheduledStart: computedStartAt,
+//       });
+//     } catch (err) {
+//       console.error("❌ Error create-election:", err);
+//       return res.status(500).json({ message: "Internal Server Error" });
+//     }
+//   },
+
+// //   Optional: list elections (useful for admin)
+//     list: async (req, res) => {
+//       try {
+//         const list = await Election.find().sort({ createdAt: -1 }).lean();
+//         res.status(200).json(list);
+//       } catch (err) {
+//         console.error("❌ Error listing elections:", err);
+//         res.status(500).json({ message: "Internal Server Error" });
+//       }
+//     },
+// };
+
+// module.exports = createElectionCtrl;
+
+// const createElectionTable = require("../models/createElectionModel");
+// const cron = require("node-cron");
+// const dayjs = require("dayjs");
+
+// // Convert delay string (like 10min, 1h, 24h) into milliseconds
+// function convertDelayToMs(delay) {
+//   if (!delay) return 0;
+//   const num = parseInt(delay);
+//   if (delay.includes("min")) return num * 60 * 1000;
+//   if (delay.includes("h")) return num * 60 * 60 * 1000;
+//   return 0;
+// }
+
+// const createElectionCtrl = {
+//   createElection: async (req, res) => {
+//     try {
+//       const {
+//         electionType,
+//         nominationStartDate,
+//         nominationStartTime,
+//         nominationEndDate,
+//         nominationEndTime,
+//         delayBeforeStart,
+//         electionStartDate,
+//         electionStartTime,
+//         electionEndDate,
+//         electionEndTime,
+//       } = req.body;
+
+//       // Save to MongoDB
+//       const newElection = new createElectionTable({
+//         electionType,
+//         nominationStartDate,
+//         nominationStartTime,
+//         nominationEndDate,
+//         nominationEndTime,
+//         delayBeforeStart,
+//         electionStartDate,
+//         electionStartTime,
+//         electionEndDate,
+//         electionEndTime,
+//       });
+
+//       await newElection.save();
+//       console.log("✅ Election saved to MongoDB:", newElection._id);
+
+//       // Start background cron job if not already
+//       if (!global.electionSchedulerStarted) {
+//         startElectionScheduler();
+//         global.electionSchedulerStarted = true;
+//       }
+
+//       res.json({
+//         success: true,
+//         message: "Election created successfully and scheduled!",
+//         election: newElection,
+//       });
+//     } catch (error) {
+//       console.error("❌ Error creating election:", error);
+//       res.status(500).json({
+//         success: false,
+//         message: "Server error while creating election",
+//       });
+//     }
+//   },
+// };
+
+// // -----------------------------
+// // 🔁 CRON JOB CONFIGURATION
+// // -----------------------------
+// function startElectionScheduler() {
+//   console.log("🕒 Scheduler started: checking every 30 seconds...");
+
+//   cron.schedule("*/30 * * * * *", async () => {
+//     try {
+//       const now = dayjs();
+
+//       // Find all elections
+//       const elections = await createElectionTable.find();
+
+//       for (const election of elections) {
+//         const startTime = dayjs(
+//           `${election.electionStartDate} ${election.electionStartTime}`
+//         );
+//         const endTime = dayjs(
+//           `${election.electionEndDate} ${election.electionEndTime}`
+//         );
+
+//         // If scheduled and time reached → set to running
+//         if (election.status === "scheduled" && now.isAfter(startTime)) {
+//           election.status = "running";
+//           await election.save();
+//           console.log(`🚀 Election "${election.electionType}" is now RUNNING`);
+//         }
+
+//         // If running and end time passed → set to completed
+//         if (election.status === "running" && now.isAfter(endTime)) {
+//           election.status = "completed";
+//           await election.save();
+//           console.log(`🏁 Election "${election.electionType}" is COMPLETED`);
+//         }
+//       }
+//     } catch (error) {
+//       console.error("❌ Scheduler error:", error);
+//     }
+//   });
+// }
+
+// module.exports = createElectionCtrl;
+
+//^^^^^^^^^^^^^^^^^^^^^
+
+// const cron = require("node-cron");
+// const dayjs = require("dayjs");
+// const createElectionTable = require("../models/createElectionModel");
+
+// // 🕒 Convert delay string (like "10min", "1h", "24h") to milliseconds
+// function convertDelayToMs(delay) {
+//   if (!delay) return 0;
+//   const num = parseInt(delay);
+//   if (delay.includes("min")) return num * 60 * 1000;
+//   if (delay.includes("h")) return num * 60 * 60 * 1000;
+//   return 0;
+// }
+
+// // 🧩 Controller
+// const createElectionCtrl = {
+//   createElectionData: async (req, res) => {
+//     try {
+//       const {
+//         electionType,
+//         nominationStartDate,
+//         nominationStartTime,
+//         nominationEndDate,
+//         nominationEndTime,
+//         delayBeforeStart,
+//         electionStartDate,
+//         electionStartTime,
+//         electionEndDate,
+//         electionEndTime,
+//       } = req.body;
+
+//       // Save to MongoDB
+//       const newElection = new createElectionTable({
+//         electionType,
+//         nominationStartDate,
+//         nominationStartTime,
+//         nominationEndDate,
+//         nominationEndTime,
+//         delayBeforeStart,
+//         electionStartDate,
+//         electionStartTime,
+//         electionEndDate,
+//         electionEndTime,
+//       });
+
+//       await newElection.save();
+//       console.log("✅ Election saved to MongoDB:", newElection._id);
+
+//       // Start cron if not already
+//       if (!global.electionSchedulerStarted) {
+//         startElectionScheduler();
+//         global.electionSchedulerStarted = true;
+//       }
+
+//       res.json({
+//         success: true,
+//         message: "Election created successfully and scheduled!",
+//         election: newElection,
+//       });
+//     } catch (error) {
+//       console.error("❌ Error creating election:", error);
+//       res.status(500).json({
+//         success: false,
+//         message: "Server error while creating election",
+//       });
+//     }
+//   },
+// };
+
+// // -----------------------------
+// // 🔁 CRON JOB CONFIGURATION
+// // -----------------------------
+// function startElectionScheduler() {
+//   console.log("🕒 Scheduler started: checking every 30 seconds...");
+
+//   cron.schedule("*/30 * * * * *", async () => {
+//     try {
+//       const now = dayjs();
+//       const elections = await createElectionTable.find();
+
+//       for (const election of elections) {
+//         const baseStart = dayjs(
+//           `${election.electionStartDate} ${election.electionStartTime}`
+//         );
+//         const baseEnd = dayjs(
+//           `${election.electionEndDate} ${election.electionEndTime}`
+//         );
+
+//         // 🧮 Apply delayBeforeStart
+//         const delayMs = convertDelayToMs(election.delayBeforeStart);
+//         const delayedStart = baseStart.add(delayMs, "millisecond");
+
+//         // 🚀 Move from "scheduled" → "running" after delayBeforeStart
+//         if (election.status === "scheduled" && now.isAfter(delayedStart)) {
+//           election.status = "running";
+//           await election.save();
+//           console.log(`🚀 Election "${election.electionType}" is now RUNNING`);
+//         }
+
+//         // 🏁 Move from "running" → "completed" after end time
+//         if (election.status === "running" && now.isAfter(baseEnd)) {
+//           election.status = "completed";
+//           await election.save();
+//           console.log(`🏁 Election "${election.electionType}" is COMPLETED`);
+//         }
+//       }
+//     } catch (error) {
+//       console.error("❌ Scheduler error:", error);
+//     }
+//   });
+// }
+
+// module.exports = createElectionCtrl;
+
+// *****************************************
+
+// const cron = require("node-cron");
+// const dayjs = require("dayjs");
+// const createElectionTable = require("../models/createElectionModel");
+
+// // Convert delay string like "10min", "1h" to milliseconds
+// function convertDelayToMs(delay) {
+//   if (!delay) return 0;
+//   const num = parseInt(delay);
+//   if (delay.includes("min")) return num * 60 * 1000;
+//   if (delay.includes("h")) return num * 60 * 60 * 1000;
+//   return 0;
+// }
+
+// // ---------------------------
+// // 🧩 Create Election Controller
+// // ---------------------------
+// const createElectionCtrl = {
+//   createElectionData: async (req, res) => {
+//     try {
+//       const {
+//         electionType,
+//         nominationStartDate,
+//         nominationStartTime,
+//         nominationEndDate,
+//         nominationEndTime,
+//         delayBeforeStart,
+//         electionStartDate,
+//         electionStartTime,
+//         electionEndDate,
+//         electionEndTime,
+//       } = req.body;
+
+//       // Combine date + time into full ISO datetime strings
+//       const nominationStartAt = dayjs(
+//         `${nominationStartDate} ${nominationStartTime}`
+//       ).toDate();
+//       const nominationEndAt = dayjs(
+//         `${nominationEndDate} ${nominationEndTime}`
+//       ).toDate();
+//       const electionStartAt = dayjs(
+//         `${electionStartDate} ${electionStartTime}`
+//       ).toDate();
+//       const electionEndAt = dayjs(
+//         `${electionEndDate} ${electionEndTime}`
+//       ).toDate();
+
+//     const newElection = new createElectionTable({
+//         electionType,
+//         nominationStartAt,
+//         nominationEndAt,
+//         delayBeforeStart,
+//         electionStartAt,
+//         electionEndAt,
+//       });
+
+//       await newElection.save();
+//       console.log("✅ Election saved to MongoDB:", newElection._id);
+
+//       // Start the scheduler (only once)
+//       if (!global.electionSchedulerStarted) {
+//         startElectionScheduler();
+//         global.electionSchedulerStarted = true;
+//       }
+
+//       res.json({
+//         success: true,
+//         message: "Election created successfully and scheduled!",
+//         election: newElection,
+//       });
+//     } catch (error) {
+//       console.error("❌ Error creating election:", error);
+//       res.status(500).json({ success: false, message: "Server error" });
+//     }
+//   },
+// };
+
+// // ---------------------------
+// // 🕒 Scheduler (runs every 30s)
+// // ---------------------------
+// function startElectionScheduler() {
+//   console.log("🕒 Scheduler started: checking every 30 seconds...");
+
+//   cron.schedule("*/30 * * * * *", async () => {
+//     try {
+//       const now = dayjs();
+//       const elections = await createElectionTable.find();
+
+//       for (const election of elections) {
+//         const startTime = dayjs(election.electionStartAt);
+//         const endTime = dayjs(election.electionEndAt);
+//         const delayMs = convertDelayToMs(election.delayBeforeStart);
+//         const delayedStart = startTime.add(delayMs, "millisecond");
+
+//         // "scheduled" → "running"
+//         if (election.status === "scheduled" && now.isAfter(delayedStart)) {
+//           election.status = "running";
+//           await election.save();
+//           console.log(`🚀 Election "${election.electionType}" is now RUNNING`);
+//         }
+
+//         // "running" → "completed"
+//         if (election.status === "running" && now.isAfter(endTime)) {
+//           election.status = "completed";
+//           await election.save();
+//           console.log(`🏁 Election "${election.electionType}" is COMPLETED`);
+//         }
+//       }
+//     } catch (err) {
+//       console.error("❌ Scheduler error:", err);
+//     }
+//   });
+// }
+
+// module.exports = createElectionCtrl;
+
+// __________end the code for Create election controlers___________
