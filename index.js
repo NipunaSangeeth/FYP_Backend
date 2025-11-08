@@ -34,8 +34,6 @@
 //   });
 // });
 
-
-
 const express = require("express");
 const cors = require("cors");
 const cookieParser = require("cookie-parser");
@@ -68,7 +66,5 @@ connectDB().then(() => {
     console.log(`✅ MongoDB connected`);
     console.log(`✅ Redis ready`);
     console.log(`🚀 Server running on port ${PORT}`);
-
-    
   });
 });

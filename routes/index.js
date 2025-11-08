@@ -65,6 +65,9 @@ router.get("/", (req, res) => res.json({ success: true, message: "API ok" }));
 // Create election
 router.post("/create-election", createElectionCtrl.createElection);
 
+// Get latest election (for front-end indicators)
+router.get("/election-status", createElectionCtrl.getLatestElection);
+
 // Resume scheduler on import (so server/index.js does not need to be changed)
 // NOTE: calling the resume function here will run when 'require("./routes")' is executed in server/index.js
 if (typeof createElectionCtrl.resumeSchedulerOnStartup === "function") {
