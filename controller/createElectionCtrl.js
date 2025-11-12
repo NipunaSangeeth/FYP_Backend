@@ -1,4 +1,3 @@
-
 // server/controllers/createElectionCtrl.js
 //#############################__2025/11/07_OPTIMIZED_VALIDATION__########################################
 
@@ -57,7 +56,7 @@ async function evaluateElectionStatus(election) {
         console.log(`Nomination time Ended..`);
       }
       console.log(
-        `[countdown] - Only ${minutesLeft} minute(s) left to start...`
+        `[countdown...] - Only ${minutesLeft} minute(s) left to start...`
       );
       return;
     }
