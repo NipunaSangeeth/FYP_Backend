@@ -11,6 +11,7 @@ const manageShowVoteCtrl = require("../controller/getElcVotesInDashbord");
 const managerejectedVoteCtrl = require("../controller/rejectVoteCount");
 const previousResultCtrl = require("../controller/previousResultCtrl");
 const createElectionCtrl = require("../controller/createElectionCtrl");
+const generateReportCtrl = require("../controller/generateReportCtrl");
 
 // ~~~~~~~~~~~~~ Router For Api ~~~~~~~~~
 
@@ -78,5 +79,8 @@ if (typeof createElectionCtrl.resumeSchedulerOnStartup === "function") {
       console.error("Error resuming scheduler from routes import:", err)
     );
 }
+
+// Generate & download final report
+router.get("/generate-report", generateReportCtrl.generateReport);
 
 module.exports = router;
