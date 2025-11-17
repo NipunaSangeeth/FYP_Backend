@@ -1,11 +1,11 @@
 //__________________________### 2025/10/02 Add Dynamic Array ###_______________________________________
+//------------2025/11/17-----Modify the Code REDIS clean Part----------------
+
 
 const redisClient = require("../config/redis");
 const addCandidateTable = require("../models/addCandidatesModel");
 
 // In-memory dynamic array acting as your demo blockchain queue.
-// NOTE: this is ephemeral (lost on server restart). That's okay for dev/demo.
-// If you need durability later, push to Redis list or database instead.
 let decrypted_Vote = [];
 
 // Processing lock to avoid concurrent processing races
@@ -15,10 +15,10 @@ let processingLock = false;
 const ELECTION_ID = "2025_president";
 
 const manageShowVoteCtrl = {
-  // POST /api/submit-vote
-  // Accepts either a single string: { decrypted_vote: "1010...:Name" }
-  // or an array: { decrypted_vote: ["1010...:Name", "1010...:Name"] }
-  // This function will *only collect* votes into the in-memory array.
+  // ============================================================
+  //  POST /api/submit-vote
+  //  Collect vote(s) temporarily in the in-memory decrypted_Vote array
+  // ============================================================
   getshowvot: async (req, res) => {
     try {
       const { decrypted_vote } = req.body;
@@ -30,7 +30,7 @@ const manageShowVoteCtrl = {
           .json({ message: "🚫 decrypted_vote is required" });
       }
 
-      // Normalize input: always push an array of strings
+      // Normalize input
       if (Array.isArray(decrypted_vote)) {
         for (const v of decrypted_vote) {
           if (typeof v === "string" && v.trim().length > 0) {
@@ -38,16 +38,13 @@ const manageShowVoteCtrl = {
           }
         }
       } else if (typeof decrypted_vote === "string") {
-        //console.log("📥 Before push:", decrypted_Vote);
         decrypted_Vote.push(decrypted_vote.trim());
-        //console.log("📥 After push (array content):", decrypted_Vote);
       } else {
         return res.status(400).json({
           message: "🚫 decrypted_vote must be string or array of strings",
         });
       }
 
-      //console.log("📥 Collected votes (queue size):", decrypted_Vote.length);
       return res.status(200).json({
         message: "☑️ Vote(s) received and stored temporarily",
         storedVote: decrypted_vote,
@@ -59,18 +56,14 @@ const manageShowVoteCtrl = {
     }
   },
 
-  // GET /api/get-votes
-  // Processes queued votes (validates, saves to Redis, increments rejected counters)
-  // Returns an array of candidates with vote counts (suitable for front-end).
+  // ============================================================
+  //  GET /api/get-votes
+  //  Processes queued votes and returns live results
+  // ============================================================
   getVoteCounts: async (req, res) => {
     try {
-      // Prevent multiple simultaneous processors
       if (processingLock) {
-        console.log(
-          "⏳ Processing already in progress — returning current counts."
-        );
-        // Still return current counts (don't re-process)
-        // fall through to fetch and return counts below
+        console.log("⏳ Already processing. Returning counts...");
       } else {
         processingLock = true;
         console.log(
@@ -78,9 +71,8 @@ const manageShowVoteCtrl = {
           decrypted_Vote.length
         );
 
-        // Process the queue FIFO so votes are handled in arrival order.
         while (decrypted_Vote.length > 0) {
-          const vote = decrypted_Vote.shift(); // removes front element
+          const vote = decrypted_Vote.shift();
           console.log("➡️ Processing vote:", vote);
 
           // 1) Basic separator check
@@ -92,13 +84,12 @@ const manageShowVoteCtrl = {
             continue;
           }
 
-          // split into exactly two parts: binary and candidate name
-          // use limit 2 to allow candidate names containing ":"
+          // split
           const [voterRandomBitsRaw, ...rest] = vote.split(":");
-          const candidateName = rest.join(":").trim(); // join remaining parts back
+          const candidateName = rest.join(":").trim();
           const voterRandomBits = voterRandomBitsRaw.trim();
 
-          // 2) Check that both parts exist
+          // 2) Check required parts
           if (!voterRandomBits || !candidateName) {
             await redisClient.incr(
               `RejectedVotes:${ELECTION_ID}:missing_fields`
@@ -107,7 +98,7 @@ const manageShowVoteCtrl = {
             continue;
           }
 
-          // 3) Validate 16-bit binary string
+          // 3) Validate bit string
           if (!/^[01]{16}$/.test(voterRandomBits)) {
             await redisClient.incr(
               `RejectedVotes:${ELECTION_ID}:invalid_binary`
@@ -116,17 +107,15 @@ const manageShowVoteCtrl = {
             continue;
           }
 
-          // 4) Duplicate check using Redis SET NX EX (atomic)
+          // 4) Duplicate check
           const codeKey = `voterRandomBits:${voterRandomBits}`;
           try {
-            // set returns "OK" if set, null if not set (already exists)
             const setResult = await redisClient.set(codeKey, "1", {
               NX: true,
-              EX: 86400, // 24 hours TTL
+              EX: 86400,
             });
 
             if (setResult === null) {
-              // duplicate
               await redisClient.incr(
                 `RejectedVotes:${ELECTION_ID}:duplicate_code`
               );
@@ -134,13 +123,12 @@ const manageShowVoteCtrl = {
               continue;
             }
           } catch (err) {
-            // If Redis errors here, count as rejected and continue
-            console.error("   ⚠️ Redis error during duplicate check:", err);
+            console.error("   ⚠️ Redis error:", err);
             await redisClient.incr(`RejectedVotes:${ELECTION_ID}:redis_error`);
             continue;
           }
 
-          // 5) Verify candidate exists in MongoDB
+          // 5) Candidate validation
           const candidate = await addCandidateTable.findOne({
             candidate_name: candidateName,
           });
@@ -153,7 +141,7 @@ const manageShowVoteCtrl = {
             continue;
           }
 
-          // 6) Accept vote -> increment candidate count
+          // 6) Accept vote
           const safeCandidateName = candidateName.replace(/\s+/g, "_");
           const redisKey = `Votes:${ELECTION_ID}:${safeCandidateName}`;
 
@@ -161,21 +149,18 @@ const manageShowVoteCtrl = {
             await redisClient.incr(redisKey);
             console.log(`   ✅ Accepted vote for ${candidateName}`);
           } catch (err) {
-            console.error("   ⚠️ Redis error incrementing vote key:", err);
-            // If increment fails, roll back the voterRandomBits key? (optional)
-            // For now increment a redis_error reason counter
+            console.error("   ⚠️ Redis INCR error:", err);
             await redisClient.incr(`RejectedVotes:${ELECTION_ID}:redis_error`);
           }
-        } // end while queue
+        }
 
         processingLock = false;
         console.log("🔎 Queue processing finished.");
       }
 
-      // After processing (or if another process was already running), fetch current candidate counts to return:
+      // Fetch Redis counts
       const candidateList = await addCandidateTable.find();
 
-      // Use SCAN (non-blocking) to discover vote keys: pattern Votes:ELECTION_ID:*
       let cursor = "0";
       let keys = [];
       const pattern = `Votes:${ELECTION_ID}:*`;
@@ -189,18 +174,14 @@ const manageShowVoteCtrl = {
         );
         cursor = nextCursor;
         keys = keys.concat(foundKeys || []);
-        //console.log("Keyyyy", keys);
       } while (cursor !== "0");
 
       const redisCounts = {};
-
       for (const key of keys) {
         const value = await redisClient.get(key);
         redisCounts[key] = parseInt(value, 10) || 0;
-        //console.log("redis count check", redisCounts);
       }
 
-      // Map DB candidates to counts (ensures candidate present even if 0 votes)
       const results = candidateList.map((c) => {
         const safeName = c.candidate_name.replace(/\s+/g, "_");
         const redisKey = `Votes:${ELECTION_ID}:${safeName}`;
@@ -212,14 +193,16 @@ const manageShowVoteCtrl = {
         };
       });
 
-      //console.log("\n📊 Returning results:", results);
       return res.status(200).json(results);
     } catch (error) {
       console.error("❌ Failed to process votes:", error);
-      processingLock = false; // ensure lock released on error
+      processingLock = false;
       return res.status(500).json({ message: "Failed to process votes 😕" });
     }
   },
+
+  
 };
 
 module.exports = manageShowVoteCtrl;
+

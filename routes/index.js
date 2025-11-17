@@ -12,6 +12,7 @@ const managerejectedVoteCtrl = require("../controller/rejectVoteCount");
 const previousResultCtrl = require("../controller/previousResultCtrl");
 const createElectionCtrl = require("../controller/createElectionCtrl");
 const generateReportCtrl = require("../controller/generateReportCtrl");
+const electionClearController = require("../controller/electionClearController");
 
 // ~~~~~~~~~~~~~ Router For Api ~~~~~~~~~
 
@@ -23,6 +24,8 @@ router.post("/signin", manageSignInCtrl.userSignInData);
 // ADD and GET MEMBER PART(For president Election)
 router.post("/addmember", manageMemberCtrl.addMemberData);
 router.get("/get-addmember", manageMemberCtrl.getMember);
+
+
 
 // ADD and GET Member SIS Electiion part
 router.post("/addvoter", manageSisMemberCtrl.addSismemberData);
@@ -45,6 +48,9 @@ router.get(
 // Get And Post Data In to the Console For DashBoard(DEMO)
 router.post("/submit-vote", manageShowVoteCtrl.getshowvot);
 router.get("/get-votes", manageShowVoteCtrl.getVoteCounts);
+
+// NEW ENDPOINT FOR CLEARING REDIS And MONGODB
+router.delete("/election/clear",electionClearController.clearElectionData);
 
 // for the Rejected Votes
 router.get(
