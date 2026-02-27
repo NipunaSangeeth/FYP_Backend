@@ -1,4 +1,4 @@
-// controllers/previousResultCtrl.js
+
 // allow  to read local files
 const fs = require("fs");
 // safely build file paths
@@ -11,19 +11,19 @@ const previousResultCtrl = {
     try {
       const { year } = req.params;
 
-      // Step 1️⃣: Build file path dynamically
+      //  Build file path dynamically
       const filePath = path.join(__dirname, "../data", `${year}_votes.json`);
 
-      // Step 2️⃣: Check if the file exists
+      //  Check if the file exists
       if (!fs.existsSync(filePath)) {
         return res.status(404).json({ message: `No data found for year ${year}` });
       }
 
-      // Step 3️⃣: Read and parse the JSON file
+      //  Read and parse the JSON file
       const fileContent = fs.readFileSync(filePath, "utf-8");
       const votes = JSON.parse(fileContent); // ["11001101:Nipuna", "11001110:Kosala", ...]
 
-      // Step 4️⃣: Initialize a map to count votes
+      //  Initialize a map to count votes
       const voteCount = {};
       let totalVotes = 0;
 
@@ -40,18 +40,18 @@ const previousResultCtrl = {
         }
       }
 
-      // Step 5️⃣: Convert map to structured array
+      //  Convert map to structured array
       const candidates = Object.entries(voteCount).map(([name, votes]) => ({
         name,
         votes,
         percentage: ((votes / totalVotes) * 100).toFixed(1),
       }));
 
-      // Step 6️⃣: Find the winner (highest vote count)
+      //  Find the winner (highest vote count)
       const sortedCandidates = candidates.sort((a, b) => b.votes - a.votes);
       const winner = sortedCandidates.length > 0 ? sortedCandidates[0].name : null;
 
-      // Step 7️⃣: Prepare the final response
+      //  Prepare the final response
       const result = {
         year: parseInt(year),
         totalVotes,
@@ -59,7 +59,7 @@ const previousResultCtrl = {
         winner,
       };
 
-      // Step 8️⃣: Send response
+      // Send response
       return res.status(200).json(result);
     } catch (err) {
       console.error("❌ Error in getPreviousResults:", err);

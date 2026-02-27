@@ -1,4 +1,3 @@
-// server/controllers/createElectionCtrl.js
 //#############################__2025/11/07_OPTIMIZED_VALIDATION__########################################
 
 const dayjs = require("dayjs");
@@ -118,7 +117,7 @@ async function startScheduler() {
         console.error("Scheduler error:", err.message || err);
       }
     },
-    { scheduled: false } // create then start to reduce scheduling race
+    { scheduled: false } // create then start to reduce scheduling
   );
 
   activeCronJob.start();
@@ -226,7 +225,7 @@ const createElectionCtrl = {
     }
   },
 
-  // === Get latest election (for frontend indicator) ===
+  // Get latest election (for frontend indicator) ===
   getLatestElection: async (req, res) => {
     try {
       const election = await CreateElection.findOne()

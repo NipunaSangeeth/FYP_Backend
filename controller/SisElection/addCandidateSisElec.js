@@ -1,4 +1,4 @@
-const addCandidateSisElecTable = require("../models/addCandidatesSisElecModel");
+const addCandidateSisElecTable = require("../../models/addCandidatesSisElecModel");
 
 const manageCandidateSisElecCtrl = {
   addCandidateSisElecData: async (req, res) => {

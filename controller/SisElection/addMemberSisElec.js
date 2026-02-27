@@ -1,6 +1,6 @@
-const addMemberSisTable = require("../models/addMemberSisElecModel");
+const addMemberSisTable = require("../../models/addMemberSisElecModel");
 // SisMember is the SIS Election Voters
-const router = require("../routes");
+const router = require("../../routes");
 
 const manageSisMemberCtrl = {
   addSismemberData: async (req, res) => {

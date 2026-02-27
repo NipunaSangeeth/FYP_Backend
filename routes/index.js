@@ -5,8 +5,8 @@ const manageMemberCtrl = require("../controller/addMember");
 const manageCandidateCtrl = require("../controller/addCandidates");
 const manageSignUpCtrl = require("../controller/userSignUp");
 const manageSignInCtrl = require("../controller/userSignin");
-const manageCandidateSisElecCtrl = require("../controller/addCandidateSisElec");
-const manageSisMemberCtrl = require("../controller/addMemberSisElec");
+const manageCandidateSisElecCtrl = require("../controller/SisElection/addCandidateSisElec");
+const manageSisMemberCtrl = require("../controller/SisElection/addMemberSisElec");
 const manageShowVoteCtrl = require("../controller/getElcVotesInDashbord");
 const managerejectedVoteCtrl = require("../controller/rejectVoteCount");
 const previousResultCtrl = require("../controller/previousResultCtrl");
@@ -25,8 +25,6 @@ router.post("/signin", manageSignInCtrl.userSignInData);
 router.post("/addmember", manageMemberCtrl.addMemberData);
 router.get("/get-addmember", manageMemberCtrl.getMember);
 
-
-
 // ADD and GET Member SIS Electiion part
 router.post("/addvoter", manageSisMemberCtrl.addSismemberData);
 router.get("/get-addvoter", manageSisMemberCtrl.getSisMemberElec);
@@ -38,11 +36,11 @@ router.get("/get-addcandidate", manageCandidateCtrl.getcandidate);
 // ADD and GET Candidates SIS Election PART
 router.post(
   "/addcandidate-sis-elec",
-  manageCandidateSisElecCtrl.addCandidateSisElecData
+  manageCandidateSisElecCtrl.addCandidateSisElecData,
 );
 router.get(
   "/get-addcandidate-sis-elec",
-  manageCandidateSisElecCtrl.getCandidateSisElec
+  manageCandidateSisElecCtrl.getCandidateSisElec,
 );
 
 // Get And Post Data In to the Console For DashBoard(DEMO)
@@ -50,18 +48,18 @@ router.post("/submit-vote", manageShowVoteCtrl.getshowvot);
 router.get("/get-votes", manageShowVoteCtrl.getVoteCounts);
 
 // NEW ENDPOINT FOR CLEARING REDIS And MONGODB
-router.delete("/election/clear",electionClearController.clearElectionData);
+router.delete("/election/clear", electionClearController.clearElectionData);
 
 // for the Rejected Votes
 router.get(
   "/rejected-vote-counts",
-  managerejectedVoteCtrl.getRejectedVoteCount
+  managerejectedVoteCtrl.getRejectedVoteCount,
 );
 
 // for Get the Votes
 router.get(
   "/previousresults/president/:year",
-  previousResultCtrl.getPreviousResults
+  previousResultCtrl.getPreviousResults,
 );
 
 // create election.
@@ -82,7 +80,7 @@ if (typeof createElectionCtrl.resumeSchedulerOnStartup === "function") {
   createElectionCtrl
     .resumeSchedulerOnStartup()
     .catch((err) =>
-      console.error("Error resuming scheduler from routes import:", err)
+      console.error("Error resuming scheduler from routes import:", err),
     );
 }
 

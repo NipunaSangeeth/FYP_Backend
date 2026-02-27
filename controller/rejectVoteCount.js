@@ -1,4 +1,3 @@
-
 //__________________________### 2025/10/02 implementation for rejected Vote ###_______________________________________
 
 // server/controller/rejectVoteCount.js
@@ -33,7 +32,10 @@ const getRejectedVotesCtrl = {
         rejectedCounts[reason] = parseInt(val, 10) || 0;
       }
 
-      const totalRejected = Object.values(rejectedCounts).reduce((a, b) => a + b, 0);
+      const totalRejected = Object.values(rejectedCounts).reduce(
+        (a, b) => a + b,
+        0
+      );
       console.log("🚫 Rejected counts:", rejectedCounts);
       return res.status(200).json({ rejectedCounts, totalRejected });
     } catch (err) {

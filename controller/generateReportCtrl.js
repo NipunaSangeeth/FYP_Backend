@@ -1,4 +1,3 @@
-
 //__________________2025/11/16______Full Stable______________
 const PDFDocument = require("pdfkit");
 const fs = require("fs");
@@ -10,9 +9,8 @@ const CreateElection = require("../models/createElectionModel");
 const generateReportCtrl = {
   generateReport: async (req, res) => {
     try {
-      // -----------------------------------------
       // 1. Find latest RUNNING or COMPLETED election
-      // -----------------------------------------
+
       const latestElection = await CreateElection.findOne()
         .sort({ createdAt: -1 })
         .lean();
@@ -23,9 +21,8 @@ const generateReportCtrl = {
         });
       }
 
-      // -----------------------------------------
       // 2. Create PDF document
-      // -----------------------------------------
+
       const doc = new PDFDocument({ margin: 50 });
 
       const timestamp = Date.now();
@@ -39,17 +36,15 @@ const generateReportCtrl = {
       const stream = fs.createWriteStream(filePath);
       doc.pipe(stream);
 
-      // -----------------------------------------
       // 3. TITLE + GENERATED TIME
-      // -----------------------------------------
+
       doc.fontSize(22).text("Final Election Report", { align: "center" });
       doc.moveDown();
       doc.fontSize(14).text(`Generated At: ${new Date().toLocaleString()}`);
       doc.moveDown(2);
 
-      // -----------------------------------------
       // 4. Election Details
-      // -----------------------------------------
+
       doc.fontSize(18).text("Election Details", { underline: true });
       doc.moveDown();
 
@@ -77,9 +72,8 @@ const generateReportCtrl = {
 
       doc.moveDown(2);
 
-      // -----------------------------------------
       // 5. Fetch vote results from Redis
-      // -----------------------------------------
+
       const keys = await redis.keys("Votes:*");
       let totalValidVotes = 0;
 
@@ -98,9 +92,8 @@ const generateReportCtrl = {
       // Sort highest votes first
       voteData.sort((a, b) => b.votes - a.votes);
 
-      // -----------------------------------------
       // 6. Vote Results Section
-      // -----------------------------------------
+
       doc.fontSize(18).text("Vote Results", { underline: true });
       doc.moveDown();
 
@@ -121,18 +114,15 @@ const generateReportCtrl = {
 
       doc.moveDown(1);
 
-      // -----------------------------------------
       // 7. Successfully casted votes
-      // -----------------------------------------
-      doc.fontSize(14).text(
-        `Successfully casted Votes: ${totalValidVotes}`,
-        { underline: true }
-      );
+
+      doc.fontSize(14).text(`Successfully casted Votes: ${totalValidVotes}`, {
+        underline: true,
+      });
       doc.moveDown(2);
 
-      // -----------------------------------------
       // 8. WINNER SECTION (supports multi-winners)
-      // -----------------------------------------
+
       doc.fontSize(18).text("Winner(s)", { underline: true });
       doc.moveDown();
 
@@ -156,20 +146,16 @@ const generateReportCtrl = {
 
       doc.moveDown(2);
 
-      // -----------------------------------------
       // 9. Rejected Votes
-      // -----------------------------------------
+
       const rejected = await redis.get("RejectedVotes:count");
 
       doc.fontSize(18).text("Rejected Votes", { underline: true });
       doc.moveDown();
-      doc
-        .fontSize(12)
-        .text(`Total Rejected Votes: ${rejected ? rejected : 0}`);
+      doc.fontSize(12).text(`Total Rejected Votes: ${rejected ? rejected : 0}`);
 
-      // -----------------------------------------
       // 10. Finish PDF
-      // -----------------------------------------
+
       doc.end();
 
       stream.on("finish", () => {

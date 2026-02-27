@@ -1,4 +1,4 @@
-//__________________________### 2025/10/02 Add Dynamic Array ###_______________________________________
+//__________________________###___2025/10/02 Add Dynamic Array___###_______________________________________
 //------------2025/11/17-----Modify the Code REDIS clean Part----------------
 
 
@@ -12,13 +12,13 @@ let decrypted_Vote = [];
 let processingLock = false;
 
 // Election ID used across keys; can be parameterized later
-const ELECTION_ID = "2025_president";
+const ELECTION_ID = "2026_president";
 
 const manageShowVoteCtrl = {
-  // ============================================================
-  //  POST /api/submit-vote
+
+
   //  Collect vote(s) temporarily in the in-memory decrypted_Vote array
-  // ============================================================
+
   getshowvot: async (req, res) => {
     try {
       const { decrypted_vote } = req.body;
@@ -56,10 +56,9 @@ const manageShowVoteCtrl = {
     }
   },
 
-  // ============================================================
-  //  GET /api/get-votes
+
   //  Processes queued votes and returns live results
-  // ============================================================
+
   getVoteCounts: async (req, res) => {
     try {
       if (processingLock) {
@@ -89,7 +88,7 @@ const manageShowVoteCtrl = {
           const candidateName = rest.join(":").trim();
           const voterRandomBits = voterRandomBitsRaw.trim();
 
-          // 2) Check required parts
+          //  Check required parts
           if (!voterRandomBits || !candidateName) {
             await redisClient.incr(
               `RejectedVotes:${ELECTION_ID}:missing_fields`
@@ -98,7 +97,7 @@ const manageShowVoteCtrl = {
             continue;
           }
 
-          // 3) Validate bit string
+          //  Validate bit string
           if (!/^[01]{16}$/.test(voterRandomBits)) {
             await redisClient.incr(
               `RejectedVotes:${ELECTION_ID}:invalid_binary`
@@ -107,7 +106,7 @@ const manageShowVoteCtrl = {
             continue;
           }
 
-          // 4) Duplicate check
+          //  Duplicate check
           const codeKey = `voterRandomBits:${voterRandomBits}`;
           try {
             const setResult = await redisClient.set(codeKey, "1", {
@@ -205,4 +204,7 @@ const manageShowVoteCtrl = {
 };
 
 module.exports = manageShowVoteCtrl;
+
+
+
 
